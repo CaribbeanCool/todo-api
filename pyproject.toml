@@ -1,0 +1,20 @@
+[project]
+name = "todo-api"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "CaribbeanCool", email = "alejandro.perez21@upr.edu" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.141.1",
+    "uvicorn[standard]>=0.52.4",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = []
