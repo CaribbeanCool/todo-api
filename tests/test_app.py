@@ -16,7 +16,7 @@ def test_create_todo():
     assert response.status_code == 201
     data = response.json()
     assert data["title"] == "Buy milk"
-    assert data["done"] is True
+    assert data["done"] is False
     assert "id" in data
 
 

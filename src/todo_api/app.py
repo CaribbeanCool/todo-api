@@ -23,7 +23,7 @@ next_id = 1
 
 @app.get("/")
 def read_root():
-    return {"status": "ok", "message": "To-Do API is running"}
+    return {"status": "ok", "message": "To-Do API v2 is running"}
 
 
 @app.get("/todos", response_model=list[Todo])
