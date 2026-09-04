@@ -1,7 +1,11 @@
+import os
+
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 
 app = FastAPI()
+
+APP_ENV = os.getenv("APP_ENV", "development")
 
 
 # --- Data model ---
@@ -23,7 +27,7 @@ next_id = 1
 
 @app.get("/")
 def read_root():
-    return {"status": "ok", "message": "To-Do API v2 is running"}
+    return {"status": "ok", "message": "To-Do API is running", "environment": APP_ENV}
 
 
 @app.get("/todos", response_model=list[Todo])
