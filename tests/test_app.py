@@ -1,6 +1,35 @@
+import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from todo_api.app import app
+from todo_api.database import Base, get_db
+
+TEST_DATABASE_URL = "postgresql://todo_user:todo_pass@localhost:5432/todo_db_test"
+
+engine = create_engine(TEST_DATABASE_URL)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+def override_get_db():
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+app.dependency_overrides[get_db] = override_get_db
+
+
+@pytest.fixture(autouse=True)
+def reset_db():
+    """Wipe and recreate all tables before every single test."""
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    yield
+
 
 client = TestClient(app)
 
@@ -24,8 +53,7 @@ def test_list_todos():
     client.post("/todos", json={"title": "Walk the dog"})
     response = client.get("/todos")
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
-    assert len(response.json()) >= 1
+    assert len(response.json()) == 1  # <-- now an EXACT count, not >=
 
 
 def test_get_todo_not_found():
