@@ -8,3 +8,13 @@ wheels/
 *.pyc
 # Virtual environments
 .venv
+
+terraform/terraform.tfvars
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+
+terraform-aws/terraform.tfvars
+terraform-aws/.terraform/
+terraform-aws/*.tfstate
+terraform-aws/*.tfstate.backup
