@@ -12,8 +12,12 @@ app = FastAPI()
 APP_ENV = os.getenv("APP_ENV", "development")
 
 DB_DEPENDS = Depends(get_db)  # Dependency for database session
+
+
 # Create tables on startup if they don't exist yet
-Base.metadata.create_all(bind=engine)
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
 
 
 # --- Pydantic schemas (API shape, separate from DB model) ---
