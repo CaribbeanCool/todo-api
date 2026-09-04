@@ -1,11 +1,20 @@
+import logging
 import os
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from todo_api.database import Base, engine, get_db
 from todo_api.models import TodoDB
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
+logger = logging.getLogger("todo_api")
 
 app = FastAPI()
 
@@ -40,6 +49,21 @@ def read_root():
     return {"status": "ok", "message": "To-Do API is running", "environment": APP_ENV}
 
 
+@app.get("/health")
+def health_check(db: Session = DB_DEPENDS):
+    try:
+        db.execute(text("SELECT 1"))
+        db_status = "ok"
+    except OperationalError:
+        db_status = "unreachable"
+
+    healthy = db_status == "ok"
+    return {
+        "status": "ok" if healthy else "degraded",
+        "database": db_status,
+    }
+
+
 @app.get("/todos", response_model=list[Todo])
 def list_todos(db: Session = DB_DEPENDS):
     return db.query(TodoDB).all()
@@ -51,6 +75,7 @@ def create_todo(todo: TodoCreate, db: Session = DB_DEPENDS):
     db.add(new_todo)
     db.commit()
     db.refresh(new_todo)
+    logger.info(f"Created todo id={new_todo.id} title={new_todo.title!r}")
     return new_todo
 
 
@@ -78,6 +103,8 @@ def update_todo(todo_id: int, updated: TodoCreate, db: Session = DB_DEPENDS):
 def delete_todo(todo_id: int, db: Session = DB_DEPENDS):
     todo = db.query(TodoDB).filter(TodoDB.id == todo_id).first()
     if not todo:
+        logger.warning(f"Attempted delete of nonexistent todo id={todo_id}")
         raise HTTPException(status_code=404, detail="Todo not found")
     db.delete(todo)
     db.commit()
+    logger.info(f"Deleted todo id={todo_id}")
